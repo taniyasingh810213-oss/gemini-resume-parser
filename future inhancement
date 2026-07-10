@@ -1,0 +1,4 @@
+💡 Future Enhancements Roadmap
+[ ] Add an "Export to CSV/JSON" button to download structured candidate profiles instantly.
+[ ] Integrate a bulk-processing queue to parse an entire folder of resumes at once.
+[ ] Add dark/light mode toggle support to the Tkinter configuration setting
