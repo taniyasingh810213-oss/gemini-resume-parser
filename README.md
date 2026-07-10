@@ -12,5 +12,4 @@ A beautiful, custom-built desktop application that allows users to upload resume
 
 ### 1. Clone the Repository
 ```bash
-git clone [https://github.com/YOUR_USERNAME/gemini-resume-parser.git](https://github.com/YOUR_USERNAME/gemini-resume-parser.git)
-cd gemini-resume-parser
+git clone https://github.com/taniyasingh810213-oss/gemini-resume-parser.git cd gemini-resume-parser
