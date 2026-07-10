@@ -1,0 +1,35 @@
+  import fitz  # PyMuPDF
+from google import genai
+
+def parse_resume():
+    # 1. Paste your key right inside these quotes
+    client = genai.Client(api_key="AQ.Ab8RN6I5x6NJQrVrO5dX7L0QBSjJpuVoY36xKD2STOKqlNbzIQ")
+    
+    pdf_path = "resume.pdf"
+    
+    print("🔄 Opening the PDF file...")
+    try:
+        doc = fitz.open(pdf_path)
+        text = ""
+        for page in doc:
+            text += page.get_text()
+    except Exception as e:
+        print(f"❌ Error opening PDF: {e}")
+        return
+    
+    print("🧠 Asking Gemini to extract the information...")
+    prompt = "Extract the name, email, skills, and work experience from this resume text."
+    
+    try:
+        # Using the corrected model name for your key
+        response = client.models.generate_content(
+            model='gemini-3-flash-preview',
+            contents=[prompt, text],
+        )
+        print("\n✅ Success! Here is your data:\n")
+        print(response.text)
+    except Exception as e:
+        print(f"❌ Google API Error: {e}")
+
+# Run the function
+parse_resume()
