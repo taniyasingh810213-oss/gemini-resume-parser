@@ -1,0 +1,102 @@
+import tkinter as tk
+from tkinter import messagebox, scrolledtext, filedialog
+import fitz  # PyMuPDF to read PDFs
+from google import genai
+
+def browse_file():
+    # Opens a file explorer dialog for PDFs and Text files
+    file_path = filedialog.askopenfilename(
+        title="Select a Resume or Document",
+        filetypes=[("PDF Files", "*.pdf"), ("Text Files", "*.txt"), ("All Files", "*.*")]
+    )
+    
+    if file_path:
+        try:
+            # Clear any text currently in the input box
+            text_input.delete("1.0", tk.END)
+            
+            # If it's a PDF file, extract text using PyMuPDF
+            if file_path.lower().endswith('.pdf'):
+                doc = fitz.open(file_path)
+                text = ""
+                for page in doc:
+                    text += page.get_text()
+                text_input.insert(tk.END, text)
+            # If it's a TXT file, read it normally
+            else:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    text_input.insert(tk.END, f.read())
+                    
+            status_label.config(text=f"📂 Loaded: {file_path.split('/')[-1]}", fg="green")
+        except Exception as e:
+            messagebox.showerror("Error Reading File", f"Could not read the file:\n{str(e)}")
+
+def process_data():
+    user_text = text_input.get("1.0", tk.END).strip()
+    
+    if not user_text:
+        messagebox.showwarning("Warning", "Please enter text or choose a file first!")
+        return
+    
+    try:
+        # Paste your API key here inside the quotes
+        client = genai.Client(api_key="gemini API KEY")
+        
+        status_label.config(text="🧠 Asking Gemini to extract information...", fg="blue")
+        root.update_idletasks()
+        
+        prompt = "Extract the name, email, skills, and work experience from this text."
+        
+        response = client.models.generate_content(
+            model='gemini-3-flash-preview',
+            contents=[prompt, user_text],
+        )
+        
+        output_display.config(state=tk.NORMAL)
+        output_display.delete("1.0", tk.END)
+        output_display.insert(tk.END, response.text)
+        output_display.config(state=tk.DISABLED)
+        
+        status_label.config(text="✅ Success!", fg="green")
+        
+    except Exception as e:
+        status_label.config(text="❌ Error occurred", fg="red")
+        messagebox.showerror("Google API Error", str(e))
+
+# --- UI Setup ---
+root = tk.Tk()
+root.title("Gemini Data Extractor")
+root.geometry("600x700")
+root.configure(bg="#f5f5f5")
+
+title_label = tk.Label(root, text="Resume & Data Parser", font=("Arial", 16, "bold"), bg="#f5f5f5", fg="#333333")
+title_label.pack(pady=10)
+
+# Frame to group the Browse Button and Input Label beautifully
+top_frame = tk.Frame(root, bg="#f5f5f5")
+top_frame.pack(fill="x", padx=20, pady=5)
+
+tk.Label(top_frame, text="Document Content:", font=("Arial", 11), bg="#f5f5f5").pack(side="left")
+
+# NEW: The Browse File Button 📁
+browse_button = tk.Button(top_frame, text="📁 Choose File", font=("Arial", 10), bg="#2196F3", fg="white", relief="flat", command=browse_file)
+browse_button.pack(side="right")
+
+# Text Input Box
+text_input = scrolledtext.ScrolledText(root, width=65, height=10, font=("Arial", 10), bg="white", fg="black", relief="solid", bd=1)
+text_input.pack(pady=5, padx=20)
+
+# Submit Button
+run_button = tk.Button(root, text="Extract Information ✨", font=("Arial", 11, "bold"), bg="#4CAF50", fg="white", padx=10, pady=5, command=process_data, relief="flat")
+run_button.pack(pady=15)
+
+# Status Tracker
+status_label = tk.Label(root, text="Ready", font=("Arial", 10, "italic"), bg="#f5f5f5", fg="#666666")
+status_label.pack()
+
+# Output Display Box
+tk.Label(root, text="Parsed Results:", font=("Arial", 11), bg="#f5f5f5").pack(anchor="w", padx=20, pady=(10, 0))
+output_display = scrolledtext.ScrolledText(root, width=65, height=12, font=("Arial", 10), bg="white", fg="black", relief="solid", bd=1, state=tk.DISABLED)
+output_display.pack(pady=5, padx=20)
+
+root.mainloop()
